@@ -7,11 +7,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Visualization & Content Choices: 
-        - Central Dogma (Figura 1): Goal: Organize, Inform. Method: Interactive HTML/CSS/JS diagram. Interaction: Click steps (DNA, RNA, Protein) and expansion points (Retrotranscription, ncRNA, Epigenetics) to reveal info. Justification: Visualizes core information flow and its complexities. Library: Vanilla JS.
-        - Splicing Alternativo (Figuras 2 & 3): Goal: Organize, Inform. Method: Interactive HTML/CSS/JS diagram. Interaction: Buttons select splicing types, updating a visual representation of pre-mRNA processing. Justification: Clarifies how diverse proteins arises from single genes. Library: Vanilla JS.
-        - 5' Cap, Polyadenylation, miRNA Biogenesis, RBPs (Figuras 4, 5, 6, 7): Goal: Inform. Method: Text with HTML/CSS visual aids representing key aspects of these figures. Interaction: Hover effects for key terms. Justification: Provides concise explanations of crucial post-transcriptional modifications and regulators.
+        - Central Dogma: Goal: Organize, Inform. Method: Interactive HTML/CSS/JS diagram. Interaction: Click steps (DNA, RNA, Protein) and expansion points (Retrotranscription, ncRNA, Epigenetics) to reveal info. Justification: Visualizes core information flow and its complexities. Library: Vanilla JS.
+        - Splicing Alternativo: Goal: Organize, Inform. Method: Interactive HTML/CSS/JS diagram. Interaction: Buttons select splicing types, updating a visual representation of pre-mRNA processing. Justification: Clarifies how diverse proteins arise from single genes. Library: Vanilla JS.
+        - 5' Cap, Polyadenylation, miRNA Biogenesis, RBPs: Goal: Inform. Method: Text with HTML/CSS visual aids representing key aspects. Interaction: Hover effects for key terms. Justification: Provides concise explanations of crucial post-transcriptional modifications and regulators.
         - Impacto de Alteraciones Moleculares: Goal: Compare, Inform. Method: Bar Chart (Chart.js). Data: Illustrative data on diseases linked to molecular alterations. Interaction: Tooltips on bars. Justification: Quantifies (illustratively) the impact of dysregulation, a key theme. Library: Chart.js.
-        - Generador de Casos de Estudio ✨: Goal: Engage, Apply. Method: LLM-generated text. Interaction: User selects an alteration type from a dropdown and clicks a button to generate a hypothetical case study. Justification: Provides practical context and reinforces learning by connecting molecular alterations to clinical scenarios. Library: Gemini API (gemini-2.0-flash).
         - Textual Content: Goal: Inform, Explain. Method: Parsed and summarized from the source presentation, organized into logical sections with introductory paragraphs. Justification: Provides foundational knowledge and context.
         - Navigation & Layout: Goal: Facilitate exploration. Method: Tailwind CSS for responsive layout, top navigation bar. Justification: Ensures usability and accessibility across devices.
     -->
@@ -34,8 +33,6 @@
         p { margin-bottom: 1rem; line-height: 1.6; }
         .interactive-diagram-container { background-color: #f8fafc; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem; border: 1px solid #e2e8f0; }
         .key-term { font-weight: 600; color: #0d9488; }
-        .loading-spinner { border: 4px solid #f3f3f3; border-top: 4px solid #0d9488; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-right: 8px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="bg-stone-100 text-stone-800">
@@ -76,7 +73,7 @@
             <p>El Dogma Central, propuesto por Francis Crick, describe el flujo fundamental de la información genética dentro de un sistema biológico. Esta sección desglosa este principio (ADN → ARN → Proteína) y presenta una visualización interactiva. También exploraremos las "ampliaciones" a este dogma, como la retrotranscripción, el papel de los ARN no codificantes y la influencia de la epigenética, que revelan una complejidad mayor en la regulación génica.</p>
 
             <div class="interactive-diagram-container">
-                <h3 class="text-center mb-4">Visualización del Dogma Central (Figura 1)</h3>
+                <h3 class="text-center mb-4">Visualización del Dogma Central</h3>
                 <div class="flex items-center justify-center">
                     <div id="dogma-dna" class="diagram-box bg-blue-100 border-blue-300">ADN</div>
                     <div class="arrow">➔</div>
@@ -108,7 +105,7 @@
             <h2>Procesos Post-Transcripcionales</h2>
             <p>Una vez que el ADN se transcribe a ARN, este último (conocido como pre-ARNm en eucariotas) sufre una serie de modificaciones cruciales antes de poder ser traducido a proteína. Esta sección detalla estos procesos de maduración: el splicing alternativo, que genera diversidad proteica; la adición del capuchón 5', vital para la protección y traducción; y la poliadenilación, que confiere estabilidad y facilita la exportación del ARNm. Comprender estas modificaciones es esencial para entender cómo se regula finamente la expresión génica.</p>
 
-            <h3>Splicing Alternativo (Figuras 2 y 3)</h3>
+            <h3>Splicing Alternativo</h3>
             <p>El splicing alternativo es un mecanismo regulado que permite que los exones de un solo gen se unan de diferentes maneras, generando múltiples isoformas de ARNm y, por lo tanto, diversas proteínas a partir de un único gen. Esto expande enormemente la capacidad codificante del genoma.</p>
             <div class="interactive-diagram-container">
                 <p class="text-sm mb-2">Pre-ARNm inicial:</p>
@@ -121,10 +118,10 @@
                     <button class="bg-sky-500 hover:bg-sky-600 text-white py-1 px-3 rounded text-sm" onclick="showSplicing('intron_retention')">Retención de Intrón (Intrón A)</button>
                 </div>
                 <div id="splicing-output" class="p-2 border rounded bg-gray-100 text-sm">Selecciona un tipo de splicing para ver el ARNm maduro resultante.</div>
-                <p class="mt-2 text-xs text-gray-600">Figura 2 ilustra el proceso general de eliminación de intrones (en rojo) y unión de exones (en amarillo) por el espliceosoma. Figura 3 muestra diversos patrones de splicing alternativo.</p>
+                <p class="mt-2 text-xs text-gray-600">Este diagrama ilustra el proceso general de eliminación de intrones (en rojo) y unión de exones (en amarillo) por el espliceosoma, así como diversos patrones de splicing alternativo.</p>
             </div>
 
-            <h3>Capuchón 5' (Capping) (Figura 4)</h3>
+            <h3>Capuchón 5' (Capping)</h3>
             <p>El capuchón 5' es una estructura de 7-metilguanosina modificada que se añade al extremo 5' del pre-ARNm eucariota poco después del inicio de la transcripción. Cumple funciones vitales:</p>
             <ul class="list-disc list-inside ml-4">
                 <li>Protege al ARNm de la degradación por exonucleasas.</li>
@@ -133,14 +130,14 @@
                 <li>Ayuda a distinguir el ARNm de otros tipos de ARN.</li>
             </ul>
             <div class="mt-2 p-3 bg-gray-50 border rounded-md text-sm">
-                <strong>Representación de Figura 4:</strong> Visualiza una molécula de 7-metilguanosina (GTP metilado) unida al primer nucleótido del ARNm mediante un enlace trifosfato 5'-5' inusual.
+                <strong>Representación del Capuchón 5':</strong> Visualiza una molécula de 7-metilguanosina (GTP metilado) unida al primer nucleótido del ARNm mediante un enlace trifosfato 5'-5' inusual.
                 <div class="mt-1 p-2 border border-dashed border-gray-300 rounded bg-white">
                     <span class="font-mono text-xs">[m7G]---(P)-(P)-(P)---[NMP]---ARNm...</span> (m7G: 7-metilguanosina, P: Fosfato, NMP: Primer nucleótido del ARNm)
                 </div>
             </div>
 
 
-            <h3>Poliadenilación (Figura 5)</h3>
+            <h3>Poliadenilación</h3>
             <p>La poliadenilación es la adición de una cola de múltiples residuos de adenosina (cola poli-A) al extremo 3' del pre-ARNm. Este proceso ocurre después del corte del pre-ARNm en un sitio específico, usualmente señalizado por una secuencia AAUAAA.</p>
             <ul class="list-disc list-inside ml-4">
                 <li>Aumenta la estabilidad del ARNm en el citoplasma.</li>
@@ -149,7 +146,7 @@
                 <li>La longitud de la cola poli-A puede regular la vida media del ARNm.</li>
             </ul>
              <div class="mt-2 p-3 bg-gray-50 border rounded-md text-sm">
-                <strong>Representación de Figura 5:</strong> Muestra el ARNm con su capuchón 5', seguido por la secuencia codificante, la señal de poliadenilación (AAUAAA) cerca del extremo 3', y finalmente la cola poli-A (AAAAA...).
+                <strong>Representación del proceso de Poliadenilación:</strong> Muestra el ARNm con su capuchón 5', seguido por la secuencia codificante, la señal de poliadenilación (AAUAAA) cerca del extremo 3', y finalmente la cola poli-A (AAAAA...).
                 <div class="mt-1 p-2 border border-dashed border-gray-300 rounded bg-white">
                     <span class="font-mono text-xs">5'-Cap---[Exones/Intrones]---UTR---(AAUAAA)---AAAAA... (Cola Poli-A) -3'</span>
                 </div>
@@ -160,7 +157,7 @@
             <h2>Reguladores Moleculares de la Expresión Génica</h2>
             <p>Más allá de los procesos de maduración básicos, la expresión génica está finamente controlada por una variedad de moléculas reguladoras. Esta sección se enfoca en dos actores clave: los microARNs (miARNs), pequeños ARNs no codificantes con un gran impacto en el silenciamiento génico, y las Proteínas de Unión a ARN (RBPs), que orquestan múltiples aspectos del metabolismo del ARN. Entender estos reguladores nos da una visión más completa de la complejidad de la vida celular.</p>
 
-            <h3>MicroARNs (miARNs) (Figura 6)</h3>
+            <h3>MicroARNs (miARNs)</h3>
             <p>Los microARNs son pequeñas moléculas de ARN no codificante (aproximadamente 22 nucleótidos) que regulan la expresión génica a nivel post-transcripcional. Generalmente, se unen a regiones específicas (3' UTR) de los ARNm diana, lo que conduce a la degradación de dicho ARNm o a la inhibición de su traducción, silenciando así la expresión del gen.</p>
             <p>Su biogénesis es un proceso complejo que involucra varias etapas:</p>
             <ol class="list-decimal list-inside ml-4">
@@ -172,7 +169,7 @@
                 <li>El complejo miRISC guía la unión al ARNm diana y ejerce su función reguladora.</li>
             </ol>
             <div class="mt-2 p-3 bg-gray-50 border rounded-md text-sm">
-                <strong>Representación de Figura 6 (Biogénesis Simplificada):</strong>
+                <strong>Representación de la Biogénesis de miARNs (Simplificada):</strong>
                 <div class="font-mono text-xs mt-1 p-2 border border-dashed border-gray-300 rounded bg-white">
                     Núcleo: Gen miRNA → pri-miRNA → (Drosha/Pasha) → pre-miRNA <br>
                     (Exportación) <br>
@@ -180,7 +177,7 @@
                 </div>
             </div>
 
-            <h3>Proteínas de Unión con ARN (RBPs) (Figura 7)</h3>
+            <h3>Proteínas de Unión con ARN (RBPs)</h3>
             <p>Las Proteínas de Unión con ARN (RBPs) son una familia extremadamente diversa de proteínas que interactúan directamente con moléculas de ARN, influyendo en prácticamente todos los aspectos de su ciclo de vida. Se unen a secuencias o estructuras específicas del ARN.</p>
             <p>Sus funciones incluyen:</p>
             <ul class="list-disc list-inside ml-4">
@@ -192,7 +189,7 @@
                 <li>Regulación de la eficiencia de la traducción.</li>
             </ul>
             <div class="mt-2 p-3 bg-gray-50 border rounded-md text-sm">
-                <strong>Representación de Figura 7:</strong> Una proteína RBP (esfera/forma irregular) con dominios específicos que reconocen y se unen a una hebra de ARN (línea ondulada).
+                <strong>Representación de Proteínas de Unión al ARN:</strong> Una proteína RBP (esfera/forma irregular) con dominios específicos que reconocen y se unen a una hebra de ARN (línea ondulada).
                  <div class="mt-1 p-2 border border-dashed border-gray-300 rounded bg-white flex items-center justify-center">
                     <div class="w-8 h-8 bg-indigo-200 rounded-full mr-2 flex items-center justify-center text-indigo-700 font-bold">RBP</div>
                     <div class="w-24 h-1 bg-pink-300 rounded-full"></div>
@@ -219,27 +216,6 @@
                 <canvas id="alterationsChart"></canvas>
             </div>
             <p class="text-sm text-gray-600 text-center">Este gráfico muestra datos ilustrativos sobre la frecuencia relativa con la que diferentes tipos de alteraciones moleculares están asociadas a enfermedades, según estudios hipotéticos.</p>
-
-            <h3 class="mt-8">Generador de Casos de Estudio ✨</h3>
-            <p>Selecciona un tipo de alteración molecular para generar un caso de estudio hipotético y ver cómo estas alteraciones se manifiestan en un contexto clínico.</p>
-            <div class="flex flex-col sm:flex-row items-center gap-4 mb-4">
-                <select id="alterationTypeSelect" class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500">
-                    <option value="el splicing anómalo">Splicing Anómalo</option>
-                    <option value="errores de capping">Errores de Capping</option>
-                    <option value="fallos en la poliadenilación">Fallos en Poliadenilación</option>
-                    <option value="la disregulación de miARNs">Disregulación de miARNs</option>
-                    <option value="la disfunción de RBPs">Disfunción de RBPs</option>
-                </select>
-                <button onclick="generateCaseStudy()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-md shadow-md transition duration-300 ease-in-out transform hover:scale-105">
-                    Generar Caso de Estudio ✨
-                </button>
-            </div>
-            <div id="caseStudyOutput" class="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-md min-h-[100px] flex items-center justify-center text-center">
-                El caso de estudio generado aparecerá aquí.
-            </div>
-            <div id="caseStudyLoading" class="hidden mt-2 text-center text-teal-600">
-                <span class="loading-spinner"></span> Generando caso de estudio...
-            </div>
         </section>
 
         <section id="aplicaciones" class="content-section">
@@ -270,10 +246,10 @@
             <h3>Videos Explicativos</h3>
             <ul class="list-disc list-inside ml-4 space-y-2">
                 <li>
-                    <a href="https://www.khanacademy.org/science/biology/gene-expression-central-dogma/transcription-rna-processing/v/rna-transcription-and-processing" target="_blank" class="text-teal-600 hover:text-teal-800 hover:underline">Dogma Central y Transcripción (Khan Academy)</a> - Un recurso general sobre el flujo de información genética. (Nota: El enlace original del documento era un placeholder, este es un ejemplo relevante).
+                    <a href="https://es.khanacademy.org/science/biology/gene-expression-central-dogma" target="_blank" class="text-teal-600 hover:text-teal-800 hover:underline">Dogma Central y Transcripción (Khan Academy)</a> - Un recurso general sobre el flujo de información genética.
                 </li>
                 <li>
-                    <a href="https://www.khanacademy.org/science/ap-biology/gene-expression-and-regulation/regulation-of-gene-expression-and-cell-specialization/v/post-transcriptional-regulation" target="_blank" class="text-teal-600 hover:text-teal-800 hover:underline">Regulación Postranscripcional (Khan Academy en Español)</a> - Explica modificaciones como el capping, poliadenilación y splicing. (Nota: El enlace original del documento era un placeholder, este es un ejemplo relevante).
+                    <a href="https://es.khanacademy.org/science/ap-biology/gene-expression-and-regulation" target="_blank" class="text-teal-600 hover:text-teal-800 hover:underline">Regulación Postranscripcional (Khan Academy en Español)</a> - Explica modificaciones como el capping, poliadenilación y splicing.
                 </li>
             </ul>
 
@@ -431,47 +407,6 @@
                     }
                 }
             });
-        }
-
-        async function generateCaseStudy() {
-            const alterationTypeSelect = document.getElementById('alterationTypeSelect');
-            const selectedAlteration = alterationTypeSelect.value;
-            const caseStudyOutput = document.getElementById('caseStudyOutput');
-            const caseStudyLoading = document.getElementById('caseStudyLoading');
-
-            caseStudyOutput.innerHTML = ''; // Clear previous content
-            caseStudyLoading.classList.remove('hidden'); // Show loading spinner
-
-            const prompt = `Genera un breve caso de estudio hipotético de un paciente con una enfermedad relacionada con una alteración molecular en ${selectedAlteration}. Describe los síntomas clave y cómo la alteración molecular contribuye a la patología. Manténlo conciso y educativo, en español. No incluyas un título para el caso de estudio.`;
-
-            let chatHistory = [];
-            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-            const payload = { contents: chatHistory };
-            const apiKey = ""; 
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-            try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const result = await response.json();
-
-                if (result.candidates && result.candidates.length > 0 &&
-                    result.candidates[0].content && result.candidates[0].content.parts &&
-                    result.candidates[0].content.parts.length > 0) {
-                    const text = result.candidates[0].content.parts[0].text;
-                    caseStudyOutput.innerHTML = text;
-                } else {
-                    caseStudyOutput.innerHTML = 'No se pudo generar el caso de estudio. Inténtalo de nuevo.';
-                }
-            } catch (error) {
-                caseStudyOutput.innerHTML = 'Error al conectar con la API de Gemini. Por favor, inténtalo más tarde.';
-                console.error('Error fetching from Gemini API:', error);
-            } finally {
-                caseStudyLoading.classList.add('hidden'); // Hide loading spinner
-            }
         }
     </script>
 </body>
