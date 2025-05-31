@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clase 2: Planificación y Análisis en Transcriptómica</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Visualization & Content Choices:
+        - Introducción: Text. Goal: Inform. Method: HTML. Interaction: Read. Justification: Foundational context.
+        - DEA: Text with key terms explained (log2FC, FDR). Goal: Inform. Method: HTML. Interaction: Read. Justification: Core concept.
+        - Diseño Experimental: Text, comparison of designs. Goal: Compare. Method: HTML layout. Interaction: Read. Justification: Explains experimental types.
+        - Normalización: Text. Goal: Inform. Method: HTML. Interaction: Read. Justification: Key processing step.
+        - Muestreo: Text. Goal: Inform. Method: HTML. Interaction: Read. Justification: Practical considerations.
+        - Herramientas DEA: Clickable elements for DESeq2, EdgeR, NOISeq descriptions. Goal: Compare. Method: HTML + JS for content switching. Interaction: Click to reveal info. Justification: Easy comparison of tools.
+        - Resultados Clave: Text. Goal: Inform. Method: HTML. Interaction: Read. Justification: Summarizes outputs.
+        - Visualización: Textual description of a volcano plot with an HTML/CSS stylized representation. Goal: Illustrate. Method: HTML/CSS. Interaction: Read/View. Justification: Explains common visualization without needing actual data or complex graphics, respecting NO SVG rule. Chart.js not used due to lack of specific data in the report.
+    -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FFF8E1; /* Light Cream */
+            color: #4E342E; /* Dark Brown */
+        }
+        .nav-button {
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .nav-button.active {
+            background-color: #795548; /* Brown */
+            color: #FFF8E1; /* Light Cream */
+        }
+        .nav-button:not(.active):hover {
+            background-color: #A1887F; /* Lighter Brown */
+            color: #FFF8E1;
+        }
+        .content-section {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        .content-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .tool-button.active {
+            background-color: #8D6E63; /* Brownish Grey from previous consideration, good for active tool */
+            color: #FFF8E1;
+        }
+        .tool-button:not(.active):hover {
+            background-color: #BCAAA4; /* Lighter version for hover */
+        }
+        .volcano-plot-container {
+            width: 100%;
+            max-width: 500px;
+            height: 350px;
+            border-left: 2px solid #4E342E;
+            border-bottom: 2px solid #4E342E;
+            position: relative;
+            margin: 20px auto;
+        }
+        .volcano-x-axis-label, .volcano-y-axis-label {
+            position: absolute;
+            font-size: 0.8rem;
+            color: #4E342E;
+        }
+        .volcano-x-axis-label {
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .volcano-y-axis-label {
+            top: 50%;
+            left: -40px;
+            transform: translateY(-50%) rotate(-90deg);
+        }
+        .volcano-point {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        .volcano-line {
+            position: absolute;
+            background-color: #A1887F;
+            opacity: 0.7;
+        }
+        .volcano-text-annotation {
+            position: absolute;
+            font-size: 0.7rem;
+            padding: 2px 4px;
+            border-radius: 3px;
+            color: #FFF8E1;
+        }
+        .chart-container { /* Generic chart container styling, as per instructions for future Chart.js use */
+            position: relative;
+            width: 100%;
+            max-width: 600px; /* Example max-width */
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px; /* Base height */
+            max-height: 400px; /* Max height */
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+             }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="min-h-screen">
+    <header class="bg-[#795548] text-[#FFF8E1] py-6 shadow-md">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-3xl font-bold">Clase 2: Planificación y Análisis de Experimentos en Transcriptómica</h1>
+        </div>
+    </header>
+
+    <nav class="bg-[#A1887F] shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-2 sm:px-4">
+            <div class="flex flex-wrap justify-center items-center space-x-1 sm:space-x-2 py-2">
+                <button data-target="intro" class="nav-button active text-xs sm:text-sm font-medium py-2 px-2 sm:px-3 rounded-md">Introducción</button>
+                <button data-target="dea" class="nav-button text-xs sm:text-sm font-medium py-2 px-2 sm:px-3 rounded-md">DEA</button>
+                <button data-target="diseno" class="nav-button text-xs sm:text-sm font-medium py-2 px-2 sm:px-3 rounded-md">Diseño Exp.</button>
+                <button data-target="normalizacion" class="nav-button text-xs sm:text-sm font-medium py-2 px-2 sm:px-3 rounded-md">Normalización</button>
+                <button data-target="muestreo" class="nav-button text-xs sm:text-sm font-medium py-2 px-2 sm:px-3 rounded-md">Muestreo</button>
+                <button data-target="herramientas" class="nav-button text-xs sm:text-sm font-medium py-2 px-2 sm:px-3 rounded-md">Herramientas</button>
+                <button data-target="resultados" class="nav-button text-xs sm:text-sm font-medium py-2 px-2 sm:px-3 rounded-md">Resultados</button>
+                <button data-target="visualizacion" class="nav-button text-xs sm:text-sm font-medium py-2 px-2 sm:px-3 rounded-md">Visualización</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto p-4 sm:p-6 md:p-8">
+        <section id="intro" class="content-section active bg-white/50 p-6 rounded-lg shadow">
+            <h2 class="text-2xl font-semibold text-[#795548] mb-4">Introducción al Diseño Experimental y Análisis Estadístico</h2>
+            <p class="mb-3">Esta sección introduce la importancia crítica del diseño experimental y el análisis estadístico en la transcriptómica, especialmente con el auge de tecnologías como RNA-seq. Un diseño robusto es fundamental para obtener resultados fiables y reproducibles, y esta clase guía al estudiante desde la concepción del experimento hasta la interpretación de los datos.</p>
+            <p class="mb-2"><strong class="text-[#795548]">Puntos Clave:</strong></p>
+            <ul class="list-disc list-inside space-y-1">
+                <li>La Clase 2 se centra en el diseño experimental y el análisis estadístico, pasos críticos tras la obtención de la matriz de conteo de RNA-seq.</li>
+                <li>Un diseño experimental deficiente puede llevar a resultados confusos o no reproducibles.</li>
+                <li>La clase guía a los estudiantes desde la conceptualización del experimento hasta la interpretación estadística, cubriendo tipos de experimentos, normalización y análisis diferencial.</li>
+                <li>El objetivo es equipar a los estudiantes para diseñar experimentos efectivos y obtener resultados de alta calidad alineados con sus objetivos biológicos.</li>
+            </ul>
+        </section>
+
+        <section id="dea" class="content-section bg-white/50 p-6 rounded-lg shadow">
+            <h2 class="text-2xl font-semibold text-[#795548] mb-4">Análisis de Expresión Diferencial (DEA) en RNA-seq</h2>
+            <p class="mb-3">El Análisis de Expresión Diferencial (DEA) es un paso crucial después de obtener la matriz de conteo. Este análisis busca identificar genes que muestran cambios significativos en su nivel de expresión entre diferentes condiciones experimentales, como tejido sano versus tumoral. Para ello, se aplican modelos estadísticos y se realizan correcciones para asegurar la validez de los hallazgos.</p>
+            <p class="mb-2"><strong class="text-[#795548]">Conceptos Fundamentales:</strong></p>
+            <ul class="list-disc list-inside space-y-2">
+                <li>La matriz de conteo (número de lecturas por gen) requiere <strong class="text-[#795548]">normalización</strong> para corregir variaciones técnicas (ej. tamaño de la biblioteca).</li>
+                <li><strong class="text-[#795548]">Modelado Estadístico:</strong> Herramientas como DESeq2 o EdgeR utilizan un modelo de <strong class="text-red-600">distribución binomial negativa</strong> para manejar la sobredispersión de los datos de RNA-seq. Esto es crucial porque los datos de conteo de genes no suelen seguir una distribución normal y presentan más variabilidad de la esperada.</li>
+                <li><strong class="text-[#795548]">Log₂ Fold Change (log₂FC):</strong> Se calcula para cada gen para indicar la magnitud y dirección del cambio en la expresión.
+                    <ul class="list-disc list-inside ml-4 mt-1 bg-[#FFF8E1] p-2 rounded">
+                        <li>Un log₂FC > 1 (o un umbral definido, ej. > 0.585 para un cambio de 1.5 veces) indica <strong class="text-red-500">sobreexpresión</strong>.</li>
+                        <li>Un log₂FC < -1 (o un umbral definido, ej. < -0.585 para un cambio de 1.5 veces) sugiere <strong class="text-blue-500">represión</strong>.</li>
+                        <li>Valores cercanos a 0 indican poco o ningún cambio.</li>
+                    </ul>
+                </li>
+                <li><strong class="text-[#795548]">Significancia Estadística y Ajuste de p-value:</strong> Se aplica un ajuste de p-value (ej. método de Benjamini-Hochberg) para controlar la <strong class="text-red-600">Tasa de Descubrimiento Falso (FDR)</strong>.</li>
+                <li><strong class="text-[#795548]">Tasa de Descubrimiento Falso (FDR):</strong> Es una métrica estadística que corrige el problema de comparaciones múltiples (probar miles de genes simultáneamente). Un FDR de 0.05 indica que, en promedio, el 5% de los genes identificados como diferencialmente expresados podrían ser falsos positivos. Este ajuste es menos conservador que Bonferroni, buscando un equilibrio entre sensibilidad y especificidad.</li>
+            </ul>
+             <p class="mt-4 text-sm italic">El ejemplo de comparar tejido sano y tejido tumoral en cáncer de mama ilustra cómo estos análisis ayudan a encontrar genes cuya expresión cambia drásticamente en la enfermedad.</p>
+        </section>
+
+        <section id="diseno" class="content-section bg-white/50 p-6 rounded-lg shadow">
+            <h2 class="text-2xl font-semibold text-[#795548] mb-4">Diseño Experimental Transcriptómico</h2>
+            <p class="mb-3">Un diseño experimental adecuado es la piedra angular para asegurar que las diferencias de expresión génica observadas sean realmente atribuibles a las condiciones biológicas estudiadas y no a variables técnicas o factores de confusión. Planificar cuidadosamente el experimento, incluyendo el número de réplicas y el manejo de las muestras, es esencial para obtener conclusiones válidas.</p>
+            <p class="mb-2"><strong class="text-[#795548]">Tipos de Diseño y Consideraciones:</strong></p>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div class="bg-[#FFF8E1] p-4 rounded-md shadow-sm">
+                    <h3 class="font-semibold text-lg text-[#8D6E63] mb-2">Comparación 2 a 2 (Ej: Control vs. Tratado)</h3>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li>Diseño básico para identificar genes diferencialmente expresados entre dos grupos.</li>
+                        <li>Requiere selección cuidadosa de muestras y minimización de variabilidad técnica.</li>
+                        <li>La <strong class="text-red-600">replicación biológica es clave</strong>; se recomienda un mínimo de <strong class="text-red-600">tres réplicas por grupo</strong>.</li>
+                        <li>Las muestras deben procesarse de manera uniforme.</li>
+                        <li>Ejemplo clásico: comparar tejido tumoral y tejido normal adyacente en pacientes.</li>
+                    </ul>
+                </div>
+                <div class="bg-[#FFF8E1] p-4 rounded-md shadow-sm">
+                    <h3 class="font-semibold text-lg text-[#8D6E63] mb-2">Comparaciones Seriadas en el Tiempo</h3>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li>Utilizado para capturar dinámicas temporales en la expresión génica (ej: respuesta a estímulos, progresión de enfermedades).</li>
+                        <li>Requiere selección de múltiples puntos temporales.</li>
+                        <li>Demanda un mayor número de muestras totales debido a las réplicas en cada punto temporal.</li>
+                        <li>La planificación debe incluir controles adecuados en cada punto si es aplicable.</li>
+                    </ul>
+                </div>
+            </div>
+            <p class="mt-4"><strong class="text-[#795548]">Desafíos Comunes:</strong> Variabilidad biológica inherente y limitaciones presupuestarias. El número de muestras y réplicas, así como la profundidad de secuenciación, deben equilibrarse con el costo para evitar comprometer la capacidad de detectar cambios significativos.</p>
+        </section>
+
+        <section id="normalizacion" class="content-section bg-white/50 p-6 rounded-lg shadow">
+            <h2 class="text-2xl font-semibold text-[#795548] mb-4">Normalización de Muestras</h2>
+            <p class="mb-3">La normalización es un paso fundamental en el preprocesamiento de datos de RNA-seq. Su objetivo es corregir sesgos técnicos y biológicos sistemáticos para que las comparaciones de expresión génica entre muestras y dentro de ellas sean válidas y significativas. Sin una normalización adecuada, los resultados del análisis de expresión diferencial pueden ser erróneos.</p>
+            <p class="mb-2"><strong class="text-[#795548]">Métodos Principales de Normalización:</strong></p>
+            <ul class="list-disc list-inside space-y-2">
+                <li><strong class="text-[#8D6E63]">Normalización por Tamaño de Biblioteca:</strong>
+                    <ul class="list-circle list-inside ml-4 mt-1 bg-[#FFF8E1] p-2 rounded">
+                        <li>Corrige diferencias en el número total de lecturas secuenciadas por muestra.</li>
+                        <li>Métodos como <strong class="text-red-600">TPM (Transcripts Per Million)</strong> ajustan las lecturas totales por la longitud del gen, permitiendo comparaciones más precisas de la expresión de diferentes genes dentro de una misma muestra.</li>
+                    </ul>
+                </li>
+                <li><strong class="text-[#8D6E63]">Normalización por Composición de Muestras:</strong>
+                    <ul class="list-circle list-inside ml-4 mt-1 bg-[#FFF8E1] p-2 rounded">
+                        <li>Aborda sesgos introducidos por genes altamente expresados que pueden "dominar" las lecturas en algunas muestras, distorsionando la abundancia relativa de otros transcritos.</li>
+                        <li>Métodos como <strong class="text-red-600">TMM (Trimmed Mean of M-values)</strong> calculan factores de normalización para eliminar el impacto de estos genes dominantes. TMM es ampliamente utilizado en paquetes como EdgeR y DESeq2.</li>
+                    </ul>
+                </li>
+                <li><strong class="text-[#8D6E63]">Normalización Basada en la Longitud del Gen:</strong>
+                    <ul class="list-circle list-inside ml-4 mt-1 bg-[#FFF8E1] p-2 rounded">
+                        <li>Ajusta las lecturas en función de la longitud de los genes, ya que los genes más largos tienden a generar más fragmentos y, por lo tanto, más lecturas.</li>
+                        <li>FPKM (Fragments Per Kilobase of transcript per Million mapped reads) fue un enfoque común, pero ha sido en gran medida reemplazado por TPM debido a una mejor consistencia entre muestras.</li>
+                    </ul>
+                </li>
+            </ul>
+            <p class="mt-4 text-red-700 font-semibold">Una normalización incorrecta o insuficiente puede conducir a artefactos significativos y resultados sesgados, comprometiendo la validez del estudio.</p>
+        </section>
+
+        <section id="muestreo" class="content-section bg-white/50 p-6 rounded-lg shadow">
+            <h2 class="text-2xl font-semibold text-[#795548] mb-4">Consideraciones Mínimas de Muestreo y Secuenciación</h2>
+            <p class="mb-3">Para obtener resultados estadísticamente robustos y biológicamente significativos en estudios de transcriptómica, es crucial prestar atención al número de muestras (réplicas biológicas) y a la profundidad de secuenciación. Estas decisiones impactan directamente la capacidad de detectar diferencias reales en la expresión génica y deben equilibrarse con las limitaciones presupuestarias.</p>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div class="bg-[#FFF8E1] p-4 rounded-md shadow-sm">
+                    <h3 class="font-semibold text-lg text-[#8D6E63] mb-2">Número Mínimo de Muestras (Réplicas Biológicas)</h3>
+                    <p>Es crucial para capturar la variabilidad biológica inherente entre individuos o condiciones y para garantizar la confiabilidad estadística del análisis.</p>
+                    <ul class="list-disc list-inside space-y-1 mt-2">
+                        <li>Se recomienda un mínimo de <strong class="text-red-600">tres réplicas biológicas por condición experimental</strong>.</li>
+                        <li>Para experimentos más complejos (ej. múltiples factores, series temporales) o cuando se espera una alta variabilidad, se necesita un <strong class="text-red-600">mayor número de réplicas</strong> para alcanzar la potencia estadística adecuada.</li>
+                    </ul>
+                </div>
+                <div class="bg-[#FFF8E1] p-4 rounded-md shadow-sm">
+                    <h3 class="font-semibold text-lg text-[#8D6E63] mb-2">Mínimo de Profundidad de Secuenciación</h3>
+                    <p>Se refiere al número total de lecturas obtenidas por muestra y afecta la sensibilidad del análisis, es decir, la capacidad de detectar genes expresados a niveles bajos o cambios sutiles en la expresión.</p>
+                     <ul class="list-disc list-inside space-y-1 mt-2">
+                        <li>Para estudios de <strong class="text-red-600">expresión diferencial</strong> estándar, entre <strong class="text-red-600">10-20 millones de lecturas</strong> por muestra generalmente se considera suficiente.</li>
+                        <li>Para estudios más detallados, como el descubrimiento de nuevos transcritos, análisis de isoformas o detección de genes con baja expresión, se recomiendan <strong class="text-red-600">30-50 millones de lecturas</strong> por muestra, o incluso más.</li>
+                        <li>La elección depende del objetivo del estudio, el tamaño del genoma y el presupuesto disponible.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="herramientas" class="content-section bg-white/50 p-6 rounded-lg shadow">
+            <h2 class="text-2xl font-semibold text-[#795548] mb-4">Paquetes Bioinformáticos para DEA</h2>
+            <p class="mb-3">Existen varios paquetes bioinformáticos robustos y ampliamente utilizados para realizar análisis de expresión diferencial (DEA) en datos de conteo de RNA-seq. La elección de la herramienta puede depender de la naturaleza del experimento, el número de réplicas y las preferencias del investigador. Aquí se describen tres de los más populares:</p>
+            <div class="flex flex-wrap justify-center gap-2 mb-4">
+                <button class="tool-button active py-2 px-4 bg-[#A1887F] text-[#FFF8E1] rounded-md shadow hover:bg-[#8D6E63]" data-tool="deseq2">DESeq2</button>
+                <button class="tool-button py-2 px-4 bg-[#A1887F] text-[#FFF8E1] rounded-md shadow hover:bg-[#8D6E63]" data-tool="edger">EdgeR</button>
+                <button class="tool-button py-2 px-4 bg-[#A1887F] text-[#FFF8E1] rounded-md shadow hover:bg-[#8D6E63]" data-tool="noiseq">NOISeq</button>
+            </div>
+
+            <div id="tool-info" class="bg-[#FFF8E1] p-4 rounded-md shadow-inner min-h-[200px]">
+                <div class="tool-content active" id="deseq2-content">
+                    <h3 class="font-semibold text-xl text-[#8D6E63] mb-2">DESeq2</h3>
+                    <p>"DESeq2 se basa en un modelo de <strong class="text-red-600">distribución binomial negativa</strong>, diseñado específicamente para manejar datos de conteo caracterizados por su naturaleza discreta y su dispersión inherente."</p>
+                    <ul class="list-disc list-inside mt-2 space-y-1">
+                        <li>Estima la dispersión de cada gen utilizando un modelo empírico bayesiano, que "presta" información entre genes para mejorar las estimaciones, especialmente con pocas réplicas.</li>
+                        <li>La normalización se realiza mediante el cálculo de <strong class="text-red-600">factores de escala</strong> basados en la mediana de las ratios entre las cuentas de cada gen y su media geométrica entre todas las muestras.</li>
+                        <li>Los datos se analizan con un modelo lineal generalizado (GLM).</li>
+                        <li>La significancia se evalúa con pruebas de Wald o Pruebas de Razón de Verosimilitud (LRT).</li>
+                        <li>Permite manejar diseños experimentales simples (dos grupos) o multifactoriales complejos (ej. con múltiples condiciones, factores de batch).</li>
+                    </ul>
+                </div>
+                <div class="tool-content hidden" id="edger-content">
+                    <h3 class="font-semibold text-xl text-[#8D6E63] mb-2">EdgeR</h3>
+                    <p>"EdgeR también emplea un modelo de <strong class="text-red-600">distribución binomial negativa</strong> para modelar los datos de conteo. Sin embargo, ofrece dos estrategias principales para realizar pruebas estadísticas: el "exact test" y el modelo lineal generalizado (GLM)."</p>
+                     <ul class="list-disc list-inside mt-2 space-y-1">
+                        <li>Utiliza una estimación de dispersión robusta, que puede ser común para todos los genes, específica para cada gen, o basada en tendencias.</li>
+                        <li>El <strong class="text-red-600">"exact test"</strong> es análogo al test exacto de Fisher y es ideal para comparaciones simples entre dos grupos.</li>
+                        <li>El <strong class="text-red-600">modelo lineal generalizado (GLM)</strong> permite analizar diseños más complejos, similares a DESeq2, incluyendo múltiples factores y covariables.</li>
+                        <li>Ambos enfoques son versátiles y potentes.</li>
+                    </ul>
+                </div>
+                <div class="tool-content hidden" id="noiseq-content">
+                    <h3 class="font-semibold text-xl text-[#8D6E63] mb-2">NOISeq</h3>
+                    <p>"NOISeq adopta un enfoque completamente diferente al utilizar <strong class="text-red-600">técnicas no paramétricas</strong> para identificar genes diferencialmente expresados."</p>
+                    <ul class="list-disc list-inside mt-2 space-y-1">
+                        <li>Evita suposiciones estrictas sobre la distribución de los datos, lo que puede ser una ventaja si los datos no se ajustan bien a la binomial negativa.</li>
+                        <li>Genera un <strong class="text-red-600">perfil ruido-señal</strong> basado en simulaciones para calcular probabilidades empíricas de expresión diferencial. Compara la diferencia observada entre condiciones con la diferencia esperada debida al ruido técnico.</li>
+                        <li>Es particularmente útil con datos de baja calidad, pocas réplicas, o para análisis exploratorios.</li>
+                        <li>Su sensibilidad puede ser inferior a la de los métodos paramétricos (DESeq2, EdgeR) cuando los datos sí cumplen las asunciones de estos últimos.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="resultados" class="content-section bg-white/50 p-6 rounded-lg shadow">
+            <h2 class="text-2xl font-semibold text-[#795548] mb-4">Comparación entre Herramientas y Resultados Clave</h2>
+            <p class="mb-3">Independientemente de la herramienta bioinformática elegida (DESeq2, EdgeR, NOISeq), el análisis de expresión diferencial (DEA) genera principalmente dos tipos de valores de gran importancia para cada gen. Estos valores ayudan a determinar no solo si un gen cambia su expresión, sino también la magnitud y la fiabilidad estadística de dicho cambio.</p>
+            <p class="mb-1">Todos los paquetes mencionados son ampliamente verificados y utilizados en la comunidad científica. La elección específica a menudo depende de las características del diseño experimental, la cantidad de réplicas, la familiaridad del investigador con la herramienta y los objetivos específicos del estudio. La bibliografía científica contiene comparaciones detalladas del rendimiento de estas herramientas bajo diferentes escenarios (referenciado como Figura 6 en el material original).</p>
+            <p class="mt-3 mb-2"><strong class="text-[#795548]">Valores Clave Generados:</strong></p>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div class="bg-[#FFF8E1] p-4 rounded-md shadow-sm">
+                    <h3 class="font-semibold text-lg text-[#8D6E63] mb-2">1. Valores de Cambio (log₂ Fold Change - log₂FC)</h3>
+                    <p>"Los valores de cambio: generalmente representados por <strong class="text-red-600">“log2FC”</strong> o logaritmo en base 2 del cambio en la expresión génica entre dos condiciones..."</p>
+                    <ul class="list-disc list-inside mt-2 space-y-1">
+                        <li>Un log₂FC <strong class="text-red-500">positivo</strong> indica <strong class="text-red-500">sobreexpresión</strong> del gen en la segunda condición comparada con la primera.</li>
+                        <li>Un log₂FC <strong class="text-blue-500">negativo</strong> indica <strong class="text-blue-500">represión</strong> (subexpresión) del gen.</li>
+                        <li>El uso del logaritmo en base 2 facilita la interpretación (ej. log₂FC de 1 es un cambio de 2 veces, log₂FC de 2 es un cambio de 4 veces) y ayuda a reducir el impacto de valores de expresión extremos, simetrizando los cambios.</li>
+                    </ul>
+                </div>
+                <div class="bg-[#FFF8E1] p-4 rounded-md shadow-sm">
+                    <h3 class="font-semibold text-lg text-[#8D6E63] mb-2">2. Valores de Significancia Estadística</h3>
+                    <p class="mb-1"><strong class="text-[#A1887F]">Para EdgeR y DESeq2:</strong></p>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li>Calculan un <strong class="text-red-600">p-value</strong> para cada gen, que representa la probabilidad de observar un cambio igual o mayor al detectado si no hubiera una diferencia real entre las condiciones (hipótesis nula).</li>
+                        <li>"Ajustan estos valores (ya sea por <strong class="text-red-600">FDR</strong> o <strong class="text-red-600">Adj_pvalue</strong>) para reducir el número de falsos positivos por repetición de prueba (al analizar miles de genes)."</li>
+                        <li>Un valor de significancia ajustado <strong class="text-red-600">< 0.05</strong> es generalmente considerado estadísticamente significativo.</li>
+                    </ul>
+                     <p class="mt-3 mb-1"><strong class="text-[#A1887F]">Para NOISeq:</strong></p>
+                     <ul class="list-disc list-inside space-y-1">
+                        <li>"NOISeq no usa pruebas paramétricas tradicionales, sino que calcula la <strong class="text-red-600">probabilidad (Probability Score)</strong> de que un gen sea diferencialmente expresado comparando la variabilidad observada con la esperada en datos simulados (ruido técnico)."</li>
+                        <li>Un Probability Score <strong class="text-red-600">≥ 0.9 o 0.95</strong> generalmente indica una alta probabilidad de expresión diferencial.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="visualizacion" class="content-section bg-white/50 p-6 rounded-lg shadow">
+            <h2 class="text-2xl font-semibold text-[#795548] mb-4">Visualización y Análisis Posterior</h2>
+            <p class="mb-3">Una vez obtenidos los resultados del análisis de expresión diferencial (como log₂FC y p-values ajustados), la visualización gráfica es fundamental para interpretar y comunicar los hallazgos. Además, los genes identificados como diferencialmente expresados suelen ser el punto de partida para análisis funcionales más profundos.</p>
+            
+            <h3 class="text-xl font-semibold text-[#8D6E63] my-3">Volcano Plots</h3>
+            <p class="mb-2">Los resultados del DEA se visualizan comúnmente con <strong class="text-red-600">volcano plots</strong> (referenciado como Figura 3 en el material original). Estos gráficos son muy informativos porque combinan la magnitud del cambio en la expresión (log₂FC) con la significancia estadística (-log10 del p-value ajustado).</p>
+            <p class="mb-3">En un volcano plot:</p>
+            <ul class="list-disc list-inside space-y-1 mb-3">
+                <li>El <strong class="text-[#795548]">eje X</strong> representa el <strong class="text-red-600">log₂ Fold Change (log₂FC)</strong>. Valores a la derecha del centro (log₂FC > 0) indican sobreexpresión, y valores a la izquierda (log₂FC < 0) indican represión.</li>
+                <li>El <strong class="text-[#795548]">eje Y</strong> representa el <strong class="text-red-600">-log10 del p-value ajustado (FDR)</strong>. Cuanto más alto es el valor en este eje, más significativo es estadísticamente el cambio (un p-value más pequeño se traduce en un -log10(p-value) más grande).</li>
+                <li>Los genes que se encuentran en las <strong class="text-red-500">regiones superiores izquierda (reprimidos significativamente)</strong> y <strong class="text-blue-500">superior derecha (sobreexpresados significativamente)</strong> del gráfico son los más interesantes, ya que muestran tanto un cambio grande en la expresión como una alta significancia estadística.</li>
+            </ul>
+
+            <p class="mb-2 text-center font-semibold">Representación Estilizada de un Volcano Plot:</p>
+            <div class="volcano-plot-container bg-[#FFF8E1] shadow-md rounded">
+                <div class="volcano-x-axis-label">Log₂ Fold Change</div>
+                <div class="volcano-y-axis-label">-log₁₀(p-value ajustado)</div>
+                
+                <div class="volcano-line" style="left: 50%; top: 0; bottom: 0; width: 1px; transform: translateX(-50%);"></div> <div class="volcano-line" style="bottom: 60px; left: 0; right: 0; height: 1px;"></div> <div class="volcano-line" style="left: 25%; top: 0; bottom: 60px; width: 1px; border-left: 1px dashed #A1887F;"></div> <div class="volcano-line" style="left: 75%; top: 0; bottom: 60px; width: 1px; border-left: 1px dashed #A1887F;"></div> <div class="volcano-point bg-[#ef4444]" style="left: 80%; bottom: 80%;"></div> <div class="volcano-point bg-[#ef4444]" style="left: 70%; bottom: 70%;"></div> <div class="volcano-point bg-[#3b82f6]" style="left: 20%; bottom: 75%;"></div> <div class="volcano-point bg-[#3b82f6]" style="left: 15%; bottom: 65%;"></div> <div class="volcano-point bg-gray-400" style="left: 48%; bottom: 30%;"></div> <div class="volcano-point bg-gray-400" style="left: 55%; bottom: 20%;"></div> <div class="volcano-point bg-gray-400" style="left: 60%; bottom: 50%;"></div> <div class="volcano-text-annotation bg-[#ef4444]" style="top: 15%; right: 5%;">Sobreexpresados</div>
+                <div class="volcano-text-annotation bg-[#3b82f6]" style="top: 15%; left: 5%;">Reprimidos</div>
+                <div class="volcano-text-annotation bg-gray-500" style="bottom: 5%; left: 35%;">No Significativos</div>
+            </div>
+            <p class="mt-4">Los genes identificados como relevantes en el volcano plot pueden ser luego sometidos a un <strong class="text-red-600">análisis de enriquecimiento funcional</strong> (utilizando bases de datos como Gene Ontology - GO, o KEGG pathways) para determinar si ciertos procesos biológicos, rutas metabólicas o funciones moleculares están sobrerrepresentadas en la lista de genes diferencialmente expresados. Este será el tema de la Clase 4.</p>
+        </section>
+    </main>
+
+    <footer class="bg-[#795548] text-[#FFF8E1] py-4 mt-8 text-center">
+        <p class="text-sm">&copy; 2024 Resumen Interactivo de Transcriptómica. Contenido basado en la Clase 2.</p>
+    </footer>
+
+    <script>
+        const navButtons = document.querySelectorAll('.nav-button');
+        const contentSections = document.querySelectorAll('.content-section');
+        const toolButtons = document.querySelectorAll('.tool-button');
+        const toolContents = document.querySelectorAll('.tool-content');
+
+        navButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                navButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                const targetId = button.dataset.target;
+                contentSections.forEach(section => {
+                    if (section.id === targetId) {
+                        section.classList.add('active');
+                    } else {
+                        section.classList.remove('active');
+                    }
+                });
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        });
+
+        toolButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                toolButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                const toolId = button.dataset.tool + '-content';
+                toolContents.forEach(content => {
+                    if (content.id === toolId) {
+                        content.classList.remove('hidden');
+                        content.classList.add('active');
+                    } else {
+                        content.classList.add('hidden');
+                        content.classList.remove('active');
+                    }
+                });
+            });
+        });
+        
+        // Ensure the first tool's content is visible by default if its button is active
+        // This logic is simplified as the default active states are set in HTML.
+        // If dynamic initial active state was needed, more JS would be here.
+    </script>
+</body>
+</html>
